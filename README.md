@@ -1,57 +1,87 @@
-# 工作待办
+# Work Todo
 
-一个无需登录、无第三方运行依赖的中文任务管理网页。纯 HTML、CSS、JavaScript，支持电脑和手机浏览器。
+A local-first task manager built with plain HTML, CSS, and JavaScript. No sign-in, backend database, API keys, or third-party runtime dependencies are required. The application interface is currently in Chinese, with a responsive layout for desktop and mobile browsers.
 
-## 功能
+## Features
 
-- 快速添加、编辑、完成任务；分类、备注、优先级和截止日期。
-- 全部 / 未完成 / 已完成筛选；今日到期、未来七天、逾期和星标视图。
-- 任务名称、备注和分类搜索；按创建时间、截止日期、优先级或名称排序。
-- 子任务清单、全局完成进度、批量完成和批量移入回收站。
-- 回收站恢复、撤销最近一次删除或批量操作。
-- JSON 备份导出 / 合并导入（重复 ID 跳过），CSV 表格导出。
-- 深色模式、键盘快捷键（N 新建，/ 搜索，Esc 取消）、响应式布局。
-- 同一浏览器标签页间同步，兼容旧版 `work-todo-v1` 任务数据。
+- Quickly add, edit, complete, and organize tasks.
+- Set priorities, due dates, categories, notes, and stars.
+- Break tasks into checkable subtasks.
+- Filter by All, Pending, or Completed status.
+- Browse tasks due today, due in the next seven days, overdue, or starred.
+- Search task titles, notes, and categories.
+- Sort by creation time, due date, priority, or title.
+- View global task counts and completion progress.
+- Select multiple tasks to complete, move to the recycle bin, or restore.
+- Restore deleted tasks and undo the most recent supported action.
+- Export and import JSON backups, or export a CSV spreadsheet.
+- Switch between light and dark themes.
+- Use keyboard shortcuts: **N** to create a task, **/** to search, and **Esc** to cancel editing.
+- Synchronize changes between tabs on the same browser and site.
+- Load task records created by the original version of this project.
 
-## 本地运行
+## Run locally
 
-需要 Python 3：
+Install Python 3, then run this command from the project root:
 
 ```sh
 python3 -m http.server 5173 --bind 127.0.0.1 --directory dist
 ```
 
-在浏览器打开 http://127.0.0.1:5173 。这是静态模块网站，请通过 HTTP 访问，不要直接双击 HTML 文件。
+Open [http://127.0.0.1:5173](http://127.0.0.1:5173) in your browser.
 
-## 检查
+Serve the project over HTTP rather than opening the HTML file directly, because the application uses JavaScript modules.
 
-需要 Node.js 20 或以上版本，无需安装依赖：
+## Checks and tests
+
+Node.js 20 or later is required. No dependency installation is needed.
 
 ```sh
 npm run check
 npm test
 ```
 
-## 数据与备份
+The regression tests cover legacy task compatibility, filtering, global statistics, date boundaries, sorting, backup merging, and CSV escaping. GitHub Actions runs syntax checks and regression tests on pushes and pull requests.
 
-任务仅保存在当前浏览器、当前网站地址的 localStorage 中。没有账号、服务器数据库、统计追踪或 OpenAI API 调用。不同域名、设备和浏览器不会共享任务，清除浏览器数据会丢失记录。换域名之前先导出 JSON，在新地址导入。
+## Data storage and privacy
 
-删除任务会移入回收站，并可恢复；回收站也包含在 JSON 备份中。CSV 只导出非回收站任务，不含子任务，完整恢复请使用 JSON。导入采用合并策略，相同 ID 不覆盖，文件上限 10 MB、单份备份最多 10000 项任务。
+Tasks are stored in your browser's localStorage for the current site origin. The application does not send task records to a server and contains no analytics or OpenAI API calls.
 
-待完成数与完成进度始终基于全部非回收站任务，与筛选条件无关。今日和逾期使用设备本地日期，未来七天不含今天。子任务完成不会自动完成主任务。
+Different domains, browsers, and devices have separate task records. Clearing browser data removes those records. Before changing domains or devices, export a JSON backup and import it at the new location.
 
-## 部署
+### Backups
 
-将 `dist/` 内的文件发布到支持 HTTPS 的静态托管服务，无需构建步骤或密钥。GitHub 仓库用于版本管理；建立仓库不等于已经启用 GitHub Pages。
+- **JSON** includes all task fields, subtasks, and recycle-bin records. Use it for complete backups.
+- **CSV** includes active tasks and their main fields, but does not include subtasks or recycle-bin records.
+- Importing a JSON backup merges tasks into existing data. Existing task IDs are skipped rather than overwritten.
+- Import supports files up to 10 MB and up to 10,000 tasks per backup.
 
-## 文件结构
+### Task rules
 
-- `dist/index.html`：页面结构
-- `dist/styles.css`：响应式样式和主题
-- `dist/app.mjs`：交互、持久化与导入导出
-- `dist/core.mjs`：数据校验、筛选、统计、合并与 CSV
-- `tests/core.test.mjs`：数据与规则回归测试
+- Deleting a task moves it to the recycle bin; it can be restored.
+- Pending counts and completion progress always use all tasks outside the recycle bin, regardless of the current filters.
+- Today and overdue views use the device's local date.
+- The next-seven-days view excludes today and includes the following seven calendar days.
+- Completing subtasks does not automatically complete the parent task.
 
-## 使用限制
+## Deploy
 
-此项目适合个人任务管理与学习，不提供跨设备同步、团队权限或后台通知。可在此基础上继续开发。
+Publish the contents of the **dist/** directory to a static hosting service with HTTPS support. There is no build step and no server-side configuration or secret required.
+
+Storing the project on GitHub does not automatically enable GitHub Pages or deploy the application.
+
+## Project structure
+
+| Path | Purpose |
+| --- | --- |
+| dist/index.html | Page structure and task editor |
+| dist/styles.css | Responsive layout and themes |
+| dist/app.mjs | User interactions, local storage, and file import/export |
+| dist/core.mjs | Data validation, filtering, statistics, merging, and CSV export |
+| tests/core.test.mjs | Regression tests |
+| .github/workflows/check.yml | GitHub Actions checks |
+| package.json | Run and test commands |
+
+## Limitations
+
+This project is intended for personal task management and learning. It does not provide account-based cross-device sync, team permissions, or background notifications.
